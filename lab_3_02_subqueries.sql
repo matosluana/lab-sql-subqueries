@@ -81,6 +81,20 @@ WHERE film_id IN ( 	SELECT film_id FROM sakila.inventory
 -- 8. Customers who spent more than the average payments.
 
 SELECT first_name, last_name FROM sakila.customer
-WHERE customer_id IN (	SELECT customer_id FROM sakila.payment
-						WHERE amount > (	SELECT AVG(amount)
-											FROM sakila.payment));
+WHERE customer_id IN (	SELECT customer_id from sakila.payment
+						GROUP BY customer_id
+						HAVING sum(amount) > ( 	SELECT AVG(total_payments)
+												FROM ( 	SELECT SUM(amount) AS "total_payments"
+														FROM sakila.payment
+														GROUP by customer_id)
+												AS inner_query)); 
+                                                
+
+-- with total payments, without names
+SELECT customer_id, sum(amount) from sakila.payment
+GROUP BY customer_id
+HAVING sum(amount) > ( 	SELECT AVG(total_payments)
+							FROM ( 	SELECT SUM(amount) AS "total_payments"
+									FROM sakila.payment
+									GROUP by customer_id)
+						AS inner_query);
